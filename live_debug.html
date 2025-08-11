@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Schedule Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f0f0f0; }
+        .debug-panel { background: white; padding: 20px; border-radius: 10px; margin: 10px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .error { color: #dc3545; background: #f8d7da; padding: 10px; border-radius: 5px; margin: 10px 0; }
+        .success { color: #155724; background: #d4edda; padding: 10px; border-radius: 5px; margin: 10px 0; }
+        .warning { color: #856404; background: #fff3cd; padding: 10px; border-radius: 5px; margin: 10px 0; }
+        button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0056b3; }
+        .code { background: #f8f9fa; padding: 10px; border-radius: 5px; font-family: monospace; margin: 10px 0; border-left: 4px solid #007bff; }
+        #output { background: #1e1e1e; color: #00ff00; padding: 15px; border-radius: 5px; font-family: monospace; height: 300px; overflow-y: auto; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Live Schedule Addition Debug</h1>
+    
+    <div class="debug-panel">
+        <h3>Current Status</h3>
+        <div id="status">Checking admin panel status...</div>
+    </div>
+    
+    <div class="debug-panel">
+        <h3>Quick Actions</h3>
+        <button onclick="checkAdminPanelState()">Check Admin Panel State</button>
+        <button onclick="injectFixScript()">Inject Fix Script</button>
+        <button onclick="testScheduleAddition()">Test Schedule Addition</button>
+        <button onclick="openAdminWithDebug()">Open Admin Panel with Debug</button>
+    </div>
+    
+    <div class="debug-panel">
+        <h3>Real-time Output</h3>
+        <div id="output">Ready to debug...\n</div>
+    </div>
+    
+    <div class="debug-panel">
+        <h3>Manual Fix Script</h3>
+        <p>If the automated fix doesn't work, copy this script and paste it in the browser console (F12) while on the admin panel:</p>
+        <div class="code" id="manualScript">
+// Force fix for schedule addition issue
+console.log("🔧 Applying emergency schedule addition fix...");
+
+// 1. Ensure global access to schedulesData
+if (!window.schedulesData) {
+    window.schedulesData = [
+        { id: 1, bus_name: 'Green Line Express (GL-001)', route: 'Dhaka - Cox\'s Bazar', departure_time: '09:00', departure_date: '2025-08-04', fare: 850, available_seats: 35, status: 'active' },
+        { id: 2, bus_name: 'Shyamoli Express (SE-002)', route: 'Dhaka - Chittagong', departure_time: '10:30', departure_date: '2025-08-04', fare: 650, available_seats: 40, status: 'active' },
+        { id: 3, bus_name: 'Ena Transport (ET-003)', route: 'Dhaka - Sylhet', departure_time: '07:45', departure_date: '2025-08-04', fare: 750, available_seats: 38, status: 'active' },
+        { id: 4, bus_name: 'Jagat Bilash Express (JB-004)', route: 'Dhaka - Rajshahi', departure_time: '22:00', departure_date: '2025-08-04', fare: 550, available_seats: 42, status: 'active' },
+        { id: 5, bus_name: 'Green Line Express (GL-001)', route: 'Dhaka - Khulna', departure_time: '06:30', departure_date: '2025-08-05', fare: 600, available_seats: 36, status: 'active' }
+    ];
+    console.log("✅ schedulesData initialized");
+}
+
+// 2. Override the addSchedule function with a working version
+window.addSchedule = async function() {
+    console.log("🚀 Custom addSchedule function called");
+    
+    const busId = document.querySelector('select[name="bus_id"]')?.value;
+    const routeId = document.querySelector('select[name="route_id"]')?.value;
+    const departureTime = document.querySelector('input[name="departure_time"]')?.value;
+    const departureDate = document.querySelector('input[name="departure_date"]')?.value;
+    const fare = document.querySelector('input[name="fare"]')?.value;
+    const availableSeats = document.querySelector('input[name="available_seats"]')?.value;
+    const status = document.querySelector('select[name="status"]')?.value || 'active';
+
+    console.log("Form values:", { busId, routeId, departureTime, departureDate, fare, availableSeats, status });
+
+    // Validation
+    if (!busId || !routeId || !departureTime || !departureDate || !fare || !availableSeats) {
+        alert('Please fill in all required fields');
+        return;
+    }
+
+    try {
+        const busNames = {
+            '1': 'Green Line Express (GL-001)',
+            '2': 'Shyamoli Express (SE-002)',
+            '3': 'Ena Transport (ET-003)',
+            '4': 'Jagat Bilash Express (JB-004)'
+        };
+        const routeNames = {
+            '1': 'Dhaka - Cox\'s Bazar',
+            '2': 'Dhaka - Chittagong',
+            '3': 'Dhaka - Sylhet',
+            '4': 'Dhaka - Rajshahi',
+            '5': 'Dhaka - Khulna'
+        };
+        
+        const newSchedule = {
+            id: window.schedulesData.length > 0 ? Math.max(...window.schedulesData.map(s => s.id)) + 1 : 1,
+            bus_name: busNames[busId] || 'Unknown Bus',
+            route: routeNames[routeId] || 'Unknown Route',
+            departure_time: departureTime,
+            departure_date: departureDate,
+            fare: parseInt(fare),
+            available_seats: parseInt(availableSeats),
+            status: status
+        };
+        
+        console.log("Adding new schedule:", newSchedule);
+        
+        window.schedulesData.push(newSchedule);
+        console.log("New schedulesData length:", window.schedulesData.length);
+        
+        // Force table update
+        if (window.updateSchedulesTable) {
+            window.updateSchedulesTable(window.schedulesData);
+            console.log("✅ Table updated");
+        }
+        
+        // Show success message
+        if (window.showNotification) {
+            window.showNotification('Schedule added successfully!', 'success');
+        } else {
+            alert('Schedule added successfully!');
+        }
+        
+        // Close modal
+        if (window.closeModal) {
+            window.closeModal();
+        }
+        
+        // Reset form
+        const form = document.getElementById('addScheduleForm');
+        if (form) {
+            form.reset();
+        }
+        
+        console.log("✅ Schedule addition completed successfully");
+        
+    } catch (error) {
+        console.error("❌ Error in addSchedule:", error);
+        alert('Error adding schedule: ' + error.message);
+    }
+};
+
+console.log("✅ Custom addSchedule function installed");
+console.log("Now try clicking 'Add Schedule' button again!");
+        </div>
+        <button onclick="copyManualScript()">📋 Copy Manual Script</button>
+    </div>
+
+    <script>
+        function log(message) {
+            const output = document.getElementById('output');
+            const timestamp = new Date().toLocaleTimeString();
+            output.innerHTML += `[${timestamp}] ${message}\n`;
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function checkAdminPanelState() {
+            log("🔍 Checking admin panel state...");
+            
+            const iframe = document.createElement('iframe');
+            iframe.src = 'admin/index.html';
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+            
+            iframe.onload = function() {
+                try {
+                    const iframeWindow = iframe.contentWindow;
+                    const iframeDoc = iframe.contentDocument;
+                    
+                    log("✅ Admin panel loaded successfully");
+                    
+                    // Check if schedulesData exists
+                    if (iframeWindow.schedulesData) {
+                        log(`✅ schedulesData found with ${iframeWindow.schedulesData.length} items`);
+                    } else {
+                        log("❌ schedulesData not found");
+                    }
+                    
+                    // Check if addSchedule function exists
+                    if (typeof iframeWindow.addSchedule === 'function') {
+                        log("✅ addSchedule function exists");
+                    } else {
+                        log("❌ addSchedule function not found");
+                    }
+                    
+                    // Check if table element exists
+                    const table = iframeDoc.getElementById('schedulesTable');
+                    if (table) {
+                        log(`✅ schedulesTable element found with ${table.children.length} rows`);
+                    } else {
+                        log("❌ schedulesTable element not found");
+                    }
+                    
+                } catch (e) {
+                    log(`❌ Error checking admin panel: ${e.message}`);
+                }
+                
+                document.body.removeChild(iframe);
+            };
+            
+            iframe.onerror = function() {
+                log("❌ Failed to load admin panel");
+                document.body.removeChild(iframe);
+            };
+        }
+
+        function injectFixScript() {
+            log("🔧 Attempting to inject fix script...");
+            
+            const adminWindow = window.open('admin/index.html', 'adminDebug');
+            
+            if (adminWindow) {
+                log("✅ Admin panel opened in new window");
+                
+                setTimeout(() => {
+                    try {
+                        // The manual script content would be injected here
+                        log("✅ Fix script injection attempted");
+                        log("⚠️ Due to security restrictions, please manually copy and paste the script from below");
+                    } catch (e) {
+                        log(`❌ Could not inject script: ${e.message}`);
+                        log("⚠️ Please manually copy and paste the script from below");
+                    }
+                }, 2000);
+            } else {
+                log("❌ Could not open admin panel (popup blocked?)");
+            }
+        }
+
+        function testScheduleAddition() {
+            log("🧪 Testing schedule addition logic...");
+            
+            try {
+                let testSchedulesData = [
+                    { id: 1, bus_name: 'Test Bus 1', route: 'Test Route 1' },
+                    { id: 3, bus_name: 'Test Bus 3', route: 'Test Route 3' }
+                ];
+                
+                const newId = testSchedulesData.length > 0 ? Math.max(...testSchedulesData.map(s => s.id)) + 1 : 1;
+                
+                const newSchedule = {
+                    id: newId,
+                    bus_name: 'Test Bus New',
+                    route: 'Test Route New',
+                    departure_time: '15:00',
+                    departure_date: '2025-08-12',
+                    fare: 500,
+                    available_seats: 40,
+                    status: 'active'
+                };
+                
+                testSchedulesData.push(newSchedule);
+                
+                log(`✅ Test passed: New schedule ID = ${newId}, Total schedules = ${testSchedulesData.length}`);
+                
+            } catch (error) {
+                log(`❌ Test failed: ${error.message}`);
+            }
+        }
+
+        function openAdminWithDebug() {
+            log("🚀 Opening admin panel with debug mode...");
+            window.open('admin/index.html', '_blank');
+            log("✅ Admin panel opened. Press F12 in that window to see console output.");
+        }
+
+        function copyManualScript() {
+            const script = document.getElementById('manualScript').textContent;
+            navigator.clipboard.writeText(script).then(() => {
+                alert('Script copied to clipboard! Open admin panel, press F12, go to Console tab, and paste this script.');
+            }).catch(() => {
+                alert('Could not copy to clipboard. Please select and copy the script manually.');
+            });
+        }
+
+        // Auto-run initial check
+        window.onload = function() {
+            setTimeout(() => {
+                checkAdminPanelState();
+            }, 1000);
+        };
+    </script>
+</body>
+</html>

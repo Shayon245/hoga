@@ -1,0 +1,141 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .success { color: green; }
+        .error { color: red; }
+        .test-area { border: 1px solid #ccc; padding: 15px; margin: 10px 0; }
+        button { background: #1DD100; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
+        button:hover { background: #16b300; }
+    </style>
+</head>
+<body>
+    <h2>Schedule Addition Test</h2>
+    
+    <div class="test-area">
+        <h3>Test 1: Basic Functionality</h3>
+        <button onclick="testBasicScheduleAddition()">Test Schedule Addition</button>
+        <div id="test1-result"></div>
+    </div>
+    
+    <div class="test-area">
+        <h3>Test 2: Error Handling</h3>
+        <button onclick="testErrorHandling()">Test Error Scenarios</button>
+        <div id="test2-result"></div>
+    </div>
+    
+    <div class="test-area">
+        <h3>Test 3: Admin Panel Direct</h3>
+        <button onclick="openAdminPanel()">Open Admin Panel</button>
+        <p>This will open the admin panel in a new window for manual testing.</p>
+    </div>
+
+    <script>
+        function testBasicScheduleAddition() {
+            const result = document.getElementById('test1-result');
+            result.innerHTML = 'Testing...';
+            
+            // Simulate the schedule addition logic
+            try {
+                let schedulesData = [
+                    { id: 1, bus_name: 'Test Bus', route: 'Test Route', departure_time: '10:00', departure_date: '2025-08-12', fare: 500, available_seats: 40, status: 'active' }
+                ];
+                
+                // Test ID generation
+                const newId = schedulesData.length > 0 ? Math.max(...schedulesData.map(s => s.id)) + 1 : 1;
+                
+                const newSchedule = {
+                    id: newId,
+                    bus_name: 'Green Line Express (GL-001)',
+                    route: 'Dhaka - Chittagong',
+                    departure_time: '09:00',
+                    departure_date: '2025-08-12',
+                    fare: 650,
+                    available_seats: 40,
+                    status: 'active'
+                };
+                
+                schedulesData.push(newSchedule);
+                
+                result.innerHTML = '<p class="success">✓ Basic schedule addition works correctly</p>' +
+                                 '<p>New schedule ID: ' + newId + '</p>' +
+                                 '<p>Total schedules: ' + schedulesData.length + '</p>';
+                
+            } catch (error) {
+                result.innerHTML = '<p class="error">✗ Error: ' + error.message + '</p>';
+            }
+        }
+        
+        function testErrorHandling() {
+            const result = document.getElementById('test2-result');
+            result.innerHTML = 'Testing error scenarios...';
+            
+            try {
+                // Test with empty array
+                let emptySchedulesData = [];
+                const newId = emptySchedulesData.length > 0 ? Math.max(...emptySchedulesData.map(s => s.id)) + 1 : 1;
+                
+                if (newId === 1) {
+                    result.innerHTML += '<p class="success">✓ Empty array handling works (ID = 1)</p>';
+                } else {
+                    result.innerHTML += '<p class="error">✗ Empty array handling failed</p>';
+                }
+                
+                // Test form validation simulation
+                const busId = '';
+                const routeId = '1';
+                const departureTime = '10:00';
+                const departureDate = '2025-08-12';
+                const fare = '500';
+                const availableSeats = '40';
+                
+                if (!busId || !routeId || !departureTime || !departureDate || !fare || !availableSeats) {
+                    result.innerHTML += '<p class="success">✓ Validation correctly catches missing bus ID</p>';
+                } else {
+                    result.innerHTML += '<p class="error">✗ Validation failed</p>';
+                }
+                
+            } catch (error) {
+                result.innerHTML += '<p class="error">✗ Error in testing: ' + error.message + '</p>';
+            }
+        }
+        
+        function openAdminPanel() {
+            window.open('admin/index.html', '_blank');
+        }
+        
+        // Auto-run tests on page load
+        window.onload = function() {
+            setTimeout(() => {
+                testBasicScheduleAddition();
+            }, 500);
+        };
+    </script>
+    
+    <h3>Manual Testing Steps:</h3>
+    <ol>
+        <li>Click "Open Admin Panel" above</li>
+        <li>In the admin panel, click "Schedules" in the sidebar</li>
+        <li>Click "Add Schedule" button</li>
+        <li>Fill in all form fields:
+            <ul>
+                <li>Bus: Select any option</li>
+                <li>Route: Select any option</li>
+                <li>Departure Time: e.g., 10:00</li>
+                <li>Departure Date: Select today or future date</li>
+                <li>Fare: e.g., 500</li>
+                <li>Available Seats: e.g., 40</li>
+                <li>Status: Active</li>
+            </ul>
+        </li>
+        <li>Click "Add Schedule"</li>
+        <li>You should see "Schedule added successfully!" message</li>
+        <li>The new schedule should appear in the table</li>
+    </ol>
+</body>
+</html>

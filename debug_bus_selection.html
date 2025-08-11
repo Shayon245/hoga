@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bus Selection Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f0f0f0; }
+        .debug-panel { background: white; padding: 20px; border-radius: 10px; margin: 10px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .error { color: #dc3545; background: #f8d7da; padding: 10px; border-radius: 5px; margin: 10px 0; }
+        .success { color: #155724; background: #d4edda; padding: 10px; border-radius: 5px; margin: 10px 0; }
+        .warning { color: #856404; background: #fff3cd; padding: 10px; border-radius: 5px; margin: 10px 0; }
+        button { background: #1DD100; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
+        button:hover { background: #16a500; }
+        #output { background: #1e1e1e; color: #00ff00; padding: 15px; border-radius: 5px; font-family: monospace; height: 400px; overflow-y: auto; margin: 10px 0; }
+        .test-btn { background: #007bff; }
+        .test-btn:hover { background: #0056b3; }
+        iframe { width: 100%; height: 300px; border: 1px solid #ddd; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Bus Selection Error Debug Tool</h1>
+    
+    <div class="debug-panel">
+        <h3>Current Status</h3>
+        <div id="status">Analyzing bus selection functionality...</div>
+    </div>
+    
+    <div class="debug-panel">
+        <h3>Debug Actions</h3>
+        <button onclick="openMainSiteInIframe()">📱 Load Main Site in Frame</button>
+        <button onclick="testMainSiteDirectly()">🌐 Open Main Site in New Tab</button>
+        <button onclick="simulateBusSearch()">🔍 Simulate Bus Search</button>
+        <button onclick="testSelectBusFunction()">🧪 Test selectBus Function</button>
+        <button onclick="checkConsoleErrors()">🚨 Check for Errors</button>
+        <button onclick="clearLog()" class="test-btn">🧹 Clear Log</button>
+    </div>
+    
+    <div class="debug-panel">
+        <h3>Main Site Frame</h3>
+        <div id="iframeContainer">
+            <p>Click "Load Main Site in Frame" to test here</p>
+        </div>
+    </div>
+    
+    <div class="debug-panel">
+        <h3>Real-time Console Output</h3>
+        <div id="output">Debug tool ready...\n</div>
+    </div>
+    
+    <div class="debug-panel">
+        <h3>Error Monitoring</h3>
+        <div id="errorLog">No errors detected yet...</div>
+    </div>
+
+    <script>
+        let errorCount = 0;
+        
+        function log(message) {
+            const output = document.getElementById('output');
+            const timestamp = new Date().toLocaleTimeString();
+            output.innerHTML += `[${timestamp}] ${message}\n`;
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function logError(error) {
+            errorCount++;
+            const errorLog = document.getElementById('errorLog');
+            const timestamp = new Date().toLocaleTimeString();
+            errorLog.innerHTML += `<div class="error">[${timestamp}] Error #${errorCount}: ${error}</div>`;
+            log(`❌ ERROR #${errorCount}: ${error}`);
+        }
+
+        function clearLog() {
+            document.getElementById('output').innerHTML = 'Log cleared...\n';
+            document.getElementById('errorLog').innerHTML = 'Error log cleared...';
+            errorCount = 0;
+        }
+
+        function openMainSiteInIframe() {
+            log('📱 Loading main site in iframe...');
+            const container = document.getElementById('iframeContainer');
+            container.innerHTML = `
+                <iframe src="index.html" onload="onIframeLoad(this)" onerror="onIframeError()"></iframe>
+                <p><strong>Instructions:</strong> 
+                1. Fill in the search form (From: Dhaka, To: Cox's Bazar, Date: tomorrow)
+                2. Click "Search Buses"
+                3. Click any "Select Bus" button
+                4. Watch the console output below for errors
+                </p>
+            `;
+        }
+
+        function onIframeLoad(iframe) {
+            log('✅ Main site loaded in iframe');
+            try {
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                const iframeWin = iframe.contentWindow;
+                
+                // Inject our error monitoring into the iframe
+                const script = iframeDoc.createElement('script');
+                script.textContent = `
+                    window.addEventListener('error', function(e) {
+                        parent.logError('Global error: ' + e.message + ' at ' + e.filename + ':' + e.lineno);
+                    });
+                    
+                    window.addEventListener('unhandledrejection', function(e) {
+                        parent.logError('Unhandled promise rejection: ' + e.reason);
+                    });
+                    
+                    // Override alert to catch it
+                    const originalAlert = window.alert;
+                    window.alert = function(message) {
+                        parent.logError('Alert intercepted: ' + message);
+                        parent.log('🚨 Alert from iframe: ' + message);
+                        return originalAlert.call(this, message);
+                    };
+                    
+                    console.log('✅ Error monitoring injected into iframe');
+                `;
+                iframeDoc.head.appendChild(script);
+                
+                log('🔧 Error monitoring injected into iframe');
+                
+            } catch (e) {
+                log('⚠️ Could not inject monitoring (cross-origin policy): ' + e.message);
+            }
+        }
+
+        function onIframeError() {
+            logError('Failed to load iframe');
+        }
+
+        function testMainSiteDirectly() {
+            log('🌐 Opening main site in new tab...');
+            const newWindow = window.open('index.html', '_blank');
+            log('📝 Please test bus selection in the new tab and check the console there');
+        }
+
+        function simulateBusSearch() {
+            log('🔍 Simulating bus search...');
+            
+            // Simulate the search process
+            const searchData = {
+                from: 'Dhaka',
+                to: 'Cox\'s Bazar',
+                date: new Date().toISOString().split('T')[0]
+            };
+            
+            log('📊 Search parameters: ' + JSON.stringify(searchData));
+            
+            // Simulate bus results
+            const mockBuses = [
+                {
+                    id: 1,
+                    company_name: 'Jagat Bilash Paribahan',
+                    bus_name: 'Green Line Express',
+                    bus_type: 'AC_Business',
+                    from_location: 'Dhaka',
+                    to_location: 'Cox\'s Bazar',
+                    departure_time: '09:00',
+                    fare: 850,
+                    available_seats: 35,
+                    estimated_duration_hours: 11
+                },
+                {
+                    id: 2,
+                    company_name: 'Jagat Bilash Paribahan',
+                    bus_name: 'Shyamoli Express',
+                    bus_type: 'AC_Business',
+                    from_location: 'Dhaka',
+                    to_location: 'Cox\'s Bazar',
+                    departure_time: '14:00',
+                    fare: 850,
+                    available_seats: 32,
+                    estimated_duration_hours: 11
+                }
+            ];
+            
+            log('✅ Mock buses generated: ' + mockBuses.length + ' buses');
+            
+            mockBuses.forEach(bus => {
+                log(`🚌 Bus ${bus.id}: ${bus.bus_name} (${bus.company_name})`);
+            });
+        }
+
+        function testSelectBusFunction() {
+            log('🧪 Testing selectBus function...');
+            
+            try {
+                // Check if we can access the main window's functions
+                if (window.parent && window.parent.selectBus) {
+                    log('✅ selectBus function found in parent window');
+                    window.parent.selectBus(1);
+                } else if (window.selectBus) {
+                    log('✅ selectBus function found in current window');
+                    window.selectBus(1);
+                } else {
+                    log('⚠️ selectBus function not accessible from this context');
+                    log('📝 This is normal - the function exists in the main site context');
+                }
+            } catch (error) {
+                logError('Error testing selectBus: ' + error.message);
+            }
+        }
+
+        function checkConsoleErrors() {
+            log('🚨 Checking for common error patterns...');
+            
+            // Check if main site is accessible
+            try {
+                fetch('index.html')
+                    .then(response => {
+                        if (response.ok) {
+                            log('✅ Main site is accessible');
+                        } else {
+                            logError('Main site returned status: ' + response.status);
+                        }
+                    })
+                    .catch(error => {
+                        logError('Cannot fetch main site: ' + error.message);
+                    });
+            } catch (error) {
+                logError('Error checking main site: ' + error.message);
+            }
+            
+            // Check JavaScript file
+            try {
+                fetch('scripts/index.js')
+                    .then(response => {
+                        if (response.ok) {
+                            log('✅ JavaScript file is accessible');
+                        } else {
+                            logError('JavaScript file returned status: ' + response.status);
+                        }
+                    })
+                    .catch(error => {
+                        logError('Cannot fetch JavaScript file: ' + error.message);
+                    });
+            } catch (error) {
+                logError('Error checking JavaScript file: ' + error.message);
+            }
+        }
+
+        // Global error handlers for this debug page
+        window.addEventListener('error', function(e) {
+            logError('Debug page error: ' + e.message + ' at ' + e.filename + ':' + e.lineno);
+        });
+
+        window.addEventListener('unhandledrejection', function(e) {
+            logError('Debug page promise rejection: ' + e.reason);
+        });
+
+        // Auto-start some checks
+        setTimeout(() => {
+            log('🔍 Debug tool initialized');
+            log('📋 Available actions:');
+            log('  • Load main site in frame for testing');
+            log('  • Open main site in new tab');
+            log('  • Simulate bus search data');
+            log('  • Test selectBus function');
+            log('  • Check for common errors');
+            checkConsoleErrors();
+        }, 1000);
+    </script>
+</body>
+</html>

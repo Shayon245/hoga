@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel Error Remover</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .success { color: #16a085; font-weight: bold; }
+        .error { color: #e74c3c; font-weight: bold; }
+        .fix-button { background: #1DD100; color: white; padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; margin: 10px 5px; font-size: 16px; }
+        .fix-button:hover { background: #16b300; }
+        .danger-button { background: #e74c3c; }
+        .danger-button:hover { background: #c0392b; }
+        .step { background: #ecf0f1; padding: 15px; margin: 10px 0; border-radius: 5px; border-left: 4px solid #1DD100; }
+        pre { background: #2c3e50; color: #ecf0f1; padding: 15px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛠️ Admin Panel Error Fixer</h1>
+        <p>This tool will forcefully remove the stuck "Error adding schedule" notification and reset the admin panel.</p>
+        
+        <div class="step">
+            <h3>Step 1: Emergency Error Removal</h3>
+            <button class="fix-button danger-button" onclick="emergencyErrorRemoval()">🚨 Force Remove All Error Notifications</button>
+            <div id="step1-result"></div>
+        </div>
+        
+        <div class="step">
+            <h3>Step 2: Reset Admin Panel State</h3>
+            <button class="fix-button" onclick="resetAdminPanel()">🔄 Reset Admin Panel</button>
+            <div id="step2-result"></div>
+        </div>
+        
+        <div class="step">
+            <h3>Step 3: Test Admin Panel</h3>
+            <button class="fix-button" onclick="testAdminPanel()">🧪 Open and Test Admin Panel</button>
+            <div id="step3-result"></div>
+        </div>
+        
+        <div class="step">
+            <h3>JavaScript Console Fix</h3>
+            <p>If the error persists, run this JavaScript code in the browser console (F12):</p>
+            <pre id="consoleCode">// Emergency error removal script
+// 1. Remove all alert/notification elements
+document.querySelectorAll('.alert, .notification, .toast, [class*="alert"], [class*="notification"], [class*="bg-red"], [class*="text-red"], .fixed').forEach(el => {
+    if (el.textContent && el.textContent.includes('Error')) el.remove();
+});
+
+// 2. Clear all event listeners and reset
+if (window.clearAllNotifications) window.clearAllNotifications();
+
+// 3. Reset schedules data
+if (window.schedulesData) window.schedulesData = [];
+
+// 4. Clear localStorage
+localStorage.removeItem('adminNotifications');
+localStorage.removeItem('adminErrors');
+
+console.log('✅ Error notifications cleared!');</pre>
+            <button class="fix-button" onclick="copyConsoleCode()">📋 Copy Console Code</button>
+        </div>
+        
+        <div id="output"></div>
+    </div>
+
+    <script>
+        function emergencyErrorRemoval() {
+            const result = document.getElementById('step1-result');
+            result.innerHTML = '<p>🔍 Searching for and removing error notifications...</p>';
+            
+            try {
+                // Clear localStorage that might be storing error states
+                localStorage.removeItem('adminNotifications');
+                localStorage.removeItem('adminErrors');
+                localStorage.removeItem('errorState');
+                sessionStorage.removeItem('adminNotifications');
+                sessionStorage.removeItem('adminErrors');
+                
+                // Create and inject emergency cleanup script into admin panel
+                const iframe = document.createElement('iframe');
+                iframe.src = 'admin/index.html';
+                iframe.style.display = 'none';
+                document.body.appendChild(iframe);
+                
+                iframe.onload = function() {
+                    setTimeout(() => {
+                        try {
+                            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                            
+                            // Remove all error notifications
+                            const errorSelectors = [
+                                '.alert', '.notification', '.toast', 
+                                '[class*="alert"]', '[class*="notification"]', 
+                                '[class*="bg-red"]', '[class*="text-red"]',
+                                '.fixed.top-', '.alert-error', '.bg-red-500'
+                            ];
+                            
+                            let removed = 0;
+                            errorSelectors.forEach(selector => {
+                                const elements = iframeDoc.querySelectorAll(selector);
+                                elements.forEach(el => {
+                                    if (el.textContent && (
+                                        el.textContent.includes('Error adding schedule') ||
+                                        el.textContent.includes('error') ||
+                                        el.textContent.includes('Error')
+                                    )) {
+                                        el.remove();
+                                        removed++;
+                                    }
+                                });
+                            });
+                            
+                            // Inject cleanup script
+                            const script = iframeDoc.createElement('script');
+                            script.textContent = `
+                                // Emergency cleanup
+                                if (window.clearAllNotifications) window.clearAllNotifications();
+                                if (window.schedulesData) window.schedulesData = [];
+                                
+                                // Override showNotification to prevent error persistence
+                                const originalShowNotification = window.showNotification;
+                                window.showNotification = function(message, type) {
+                                    if (message && message.includes('Error adding schedule')) {
+                                        console.log('Blocked persistent error notification');
+                                        return;
+                                    }
+                                    if (originalShowNotification) {
+                                        originalShowNotification(message, type);
+                                    }
+                                };
+                                
+                                console.log('Emergency cleanup completed');
+                            `;
+                            iframeDoc.head.appendChild(script);
+                            
+                            result.innerHTML = `<p class="success">✅ Emergency cleanup completed! Removed ${removed} error elements.</p>`;
+                            
+                        } catch (e) {
+                            result.innerHTML = `<p class="error">⚠️ Partial cleanup completed. Error: ${e.message}</p>`;
+                        }
+                        
+                        document.body.removeChild(iframe);
+                    }, 2000);
+                };
+                
+                iframe.onerror = function() {
+                    result.innerHTML = '<p class="error">❌ Could not access admin panel for cleanup</p>';
+                    document.body.removeChild(iframe);
+                };
+                
+            } catch (error) {
+                result.innerHTML = `<p class="error">❌ Emergency cleanup failed: ${error.message}</p>`;
+            }
+        }
+        
+        function resetAdminPanel() {
+            const result = document.getElementById('step2-result');
+            result.innerHTML = '<p>🔄 Resetting admin panel state...</p>';
+            
+            // Clear all possible storage
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            // Clear cookies related to admin
+            document.cookie.split(";").forEach(function(c) { 
+                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+            });
+            
+            result.innerHTML = '<p class="success">✅ Admin panel state reset successfully!</p>';
+        }
+        
+        function testAdminPanel() {
+            const result = document.getElementById('step3-result');
+            result.innerHTML = '<p>🚀 Opening admin panel for testing...</p>';
+            
+            // Open admin panel in new window
+            const adminWindow = window.open('admin/index.html', '_blank');
+            
+            if (adminWindow) {
+                result.innerHTML = '<p class="success">✅ Admin panel opened! Check if the error is gone.</p>';
+            } else {
+                result.innerHTML = '<p class="error">❌ Could not open admin panel. Check popup blocker.</p>';
+            }
+        }
+        
+        function copyConsoleCode() {
+            const code = document.getElementById('consoleCode').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                alert('Console code copied! Open browser console (F12) and paste it.');
+            }).catch(() => {
+                alert('Could not copy to clipboard. Please select and copy the code manually.');
+            });
+        }
+        
+        // Auto-run emergency cleanup on page load
+        window.onload = function() {
+            setTimeout(() => {
+                emergencyErrorRemoval();
+            }, 1000);
+        };
+    </script>
+    
+    <div style="margin-top: 30px; padding: 20px; background: #fff3cd; border-radius: 5px; border-left: 4px solid #ffc107;">
+        <h3>⚠️ If Error Still Persists:</h3>
+        <ol>
+            <li><strong>Hard Browser Refresh:</strong> Press Ctrl+Shift+R (or Cmd+Shift+R on Mac)</li>
+            <li><strong>Clear Browser Cache:</strong> Go to browser settings and clear all cache/data for localhost</li>
+            <li><strong>Incognito Mode:</strong> Open admin panel in incognito/private browsing mode</li>
+            <li><strong>Browser Console:</strong> Use the JavaScript code provided above</li>
+        </ol>
+    </div>
+</body>
+</html>

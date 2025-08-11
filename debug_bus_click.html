@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bus Selection Debug - Live Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f0f0f0; }
+        .debug-panel { background: white; padding: 20px; border-radius: 10px; margin: 10px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .success { color: #155724; background: #d4edda; padding: 10px; border-radius: 5px; margin: 10px 0; }
+        .error { color: #dc3545; background: #f8d7da; padding: 10px; border-radius: 5px; margin: 10px 0; }
+        .warning { color: #856404; background: #fff3cd; padding: 10px; border-radius: 5px; margin: 10px 0; }
+        button { background: #1DD100; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
+        button:hover { background: #16a500; }
+        #output { background: #1e1e1e; color: #00ff00; padding: 15px; border-radius: 5px; font-family: monospace; height: 400px; overflow-y: auto; margin: 10px 0; }
+        iframe { width: 100%; height: 500px; border: 2px solid #ddd; border-radius: 8px; }
+        .action-buttons button { margin: 3px; font-size: 12px; padding: 8px 12px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Bus Selection - Live Debug Analysis</h1>
+    
+    <div class="debug-panel">
+        <h3>Current Issue</h3>
+        <div class="error">
+            <strong>Problem:</strong> After clicking "Select Bus" button, no popup appears and no scrolling to booking section occurs.
+        </div>
+        <div class="warning">
+            <strong>Expected Behavior:</strong> Should scroll down to show seat selection interface in the booking section.
+        </div>
+    </div>
+    
+    <div class="debug-panel">
+        <h3>Live Main Site Test</h3>
+        <div class="action-buttons">
+            <button onclick="loadMainSite()">🌐 Load Main Site</button>
+            <button onclick="autoFillAndSearch()">🔍 Auto Fill & Search</button>
+            <button onclick="clickFirstSelectBus()">🚌 Click First Select Bus</button>
+            <button onclick="checkBookingSection()">📋 Check Booking Section</button>
+            <button onclick="forceScroll()">📜 Force Scroll to Booking</button>
+        </div>
+        <div id="siteContainer">
+            <p>Click "Load Main Site" to start testing</p>
+        </div>
+    </div>
+    
+    <div class="debug-panel">
+        <h3>Console Output & Analysis</h3>
+        <div id="output">Debug tool initialized...\n</div>
+    </div>
+    
+    <div class="debug-panel">
+        <h3>Manual Test Steps</h3>
+        <ol>
+            <li>Click "Load Main Site" above</li>
+            <li>Fill search form: From = Dhaka, To = Cox's Bazar, Date = tomorrow</li>
+            <li>Click "Search Buses"</li>
+            <li>Click any "Select Bus" button</li>
+            <li>Watch console output for debugging info</li>
+        </ol>
+    </div>
+
+    <script>
+        function log(message) {
+            const output = document.getElementById('output');
+            const timestamp = new Date().toLocaleTimeString();
+            output.innerHTML += `[${timestamp}] ${message}\n`;
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function loadMainSite() {
+            log('🌐 Loading main site in iframe...');
+            const container = document.getElementById('siteContainer');
+            
+            container.innerHTML = `
+                <iframe src="index.html" id="mainSiteFrame" onload="onMainSiteLoad()"></iframe>
+            `;
+        }
+
+        function onMainSiteLoad() {
+            log('✅ Main site loaded');
+            
+            try {
+                const iframe = document.getElementById('mainSiteFrame');
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                const iframeWin = iframe.contentWindow;
+                
+                // Inject monitoring script
+                const script = iframeDoc.createElement('script');
+                script.textContent = `
+                    // Monitor function calls
+                    if (window.safeSelectBus) {
+                        const originalSafeSelectBus = window.safeSelectBus;
+                        window.safeSelectBus = function(scheduleId) {
+                            parent.log('🚌 safeSelectBus called with ID: ' + scheduleId);
+                            try {
+                                const result = originalSafeSelectBus.call(this, scheduleId);
+                                parent.log('✅ safeSelectBus completed');
+                                return result;
+                            } catch (error) {
+                                parent.log('❌ Error in safeSelectBus: ' + error.message);
+                                throw error;
+                            }
+                        };
+                        parent.log('✅ Monitoring injected for safeSelectBus');
+                    } else {
+                        parent.log('⚠️ safeSelectBus function not found');
+                    }
+                    
+                    if (window.selectBus) {
+                        const originalSelectBus = window.selectBus;
+                        window.selectBus = function(scheduleId) {
+                            parent.log('🚌 selectBus called with ID: ' + scheduleId);
+                            try {
+                                const result = originalSelectBus.call(this, scheduleId);
+                                parent.log('✅ selectBus completed');
+                                return result;
+                            } catch (error) {
+                                parent.log('❌ Error in selectBus: ' + error.message);
+                                throw error;
+                            }
+                        };
+                        parent.log('✅ Monitoring injected for selectBus');
+                    } else {
+                        parent.log('⚠️ selectBus function not found');
+                    }
+                    
+                    // Monitor element checks
+                    const checkBookingSection = () => {
+                        const bookingSection = document.getElementById('Ticket-booking');
+                        if (bookingSection) {
+                            parent.log('✅ Booking section found: ' + bookingSection.tagName);
+                            return true;
+                        } else {
+                            parent.log('❌ Booking section NOT found');
+                            return false;
+                        }
+                    };
+                    
+                    window.parentCheckBookingSection = checkBookingSection;
+                `;
+                
+                iframeDoc.head.appendChild(script);
+                log('✅ Monitoring script injected');
+                
+            } catch (error) {
+                log('⚠️ Could not inject monitoring: ' + error.message);
+            }
+        }
+
+        function autoFillAndSearch() {
+            log('🔍 Auto-filling search form...');
+            
+            try {
+                const iframe = document.getElementById('mainSiteFrame');
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                
+                // Fill form
+                const fromSelect = iframeDoc.getElementById('fromLocation');
+                const toSelect = iframeDoc.getElementById('toLocation');
+                const dateInput = iframeDoc.getElementById('travelDate');
+                
+                if (fromSelect && toSelect && dateInput) {
+                    // Set values
+                    fromSelect.value = 'Dhaka';
+                    toSelect.value = 'Cox\'s Bazar';
+                    
+                    // Set tomorrow's date
+                    const tomorrow = new Date();
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    dateInput.value = tomorrow.toISOString().split('T')[0];
+                    
+                    log('✅ Form filled with: Dhaka → Cox\'s Bazar, Date: ' + dateInput.value);
+                    
+                    // Click search
+                    const searchBtn = iframeDoc.getElementById('searchBuses');
+                    if (searchBtn) {
+                        searchBtn.click();
+                        log('✅ Search button clicked');
+                    } else {
+                        log('❌ Search button not found');
+                    }
+                } else {
+                    log('❌ Form elements not found');
+                    log('fromSelect: ' + !!fromSelect);
+                    log('toSelect: ' + !!toSelect);
+                    log('dateInput: ' + !!dateInput);
+                }
+                
+            } catch (error) {
+                log('❌ Error auto-filling: ' + error.message);
+            }
+        }
+
+        function clickFirstSelectBus() {
+            log('🚌 Looking for Select Bus buttons...');
+            
+            try {
+                const iframe = document.getElementById('mainSiteFrame');
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                
+                // Look for Select Bus buttons
+                const selectBusButtons = iframeDoc.querySelectorAll('button');
+                let found = false;
+                
+                for (let button of selectBusButtons) {
+                    if (button.textContent.includes('Select Bus')) {
+                        log('✅ Found Select Bus button');
+                        log('Button onclick: ' + button.getAttribute('onclick'));
+                        
+                        // Click the button
+                        button.click();
+                        log('✅ Select Bus button clicked');
+                        found = true;
+                        break;
+                    }
+                }
+                
+                if (!found) {
+                    log('❌ No Select Bus buttons found');
+                    log('Available buttons: ' + Array.from(selectBusButtons).map(b => b.textContent.trim()).join(', '));
+                }
+                
+            } catch (error) {
+                log('❌ Error clicking Select Bus: ' + error.message);
+            }
+        }
+
+        function checkBookingSection() {
+            log('📋 Checking booking section...');
+            
+            try {
+                const iframe = document.getElementById('mainSiteFrame');
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                const iframeWin = iframe.contentWindow;
+                
+                const bookingSection = iframeDoc.getElementById('Ticket-booking');
+                if (bookingSection) {
+                    log('✅ Booking section found');
+                    log('Section class: ' + bookingSection.className);
+                    log('Section visible: ' + (bookingSection.offsetHeight > 0));
+                    
+                    // Check for seat grid
+                    const seatGrid = iframeDoc.querySelector('.grid.gap-x-8.grid-cols-9');
+                    if (seatGrid) {
+                        log('✅ Seat grid found');
+                        log('Seat grid children: ' + seatGrid.children.length);
+                    } else {
+                        log('❌ Seat grid not found');
+                    }
+                } else {
+                    log('❌ Booking section not found');
+                }
+                
+                // Check if the iframe has the monitoring function
+                if (iframeWin.parentCheckBookingSection) {
+                    iframeWin.parentCheckBookingSection();
+                }
+                
+            } catch (error) {
+                log('❌ Error checking booking section: ' + error.message);
+            }
+        }
+
+        function forceScroll() {
+            log('📜 Force scrolling to booking section...');
+            
+            try {
+                const iframe = document.getElementById('mainSiteFrame');
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                
+                const bookingSection = iframeDoc.getElementById('Ticket-booking');
+                if (bookingSection) {
+                    bookingSection.scrollIntoView({ behavior: 'smooth' });
+                    log('✅ Forced scroll to booking section');
+                } else {
+                    log('❌ Cannot scroll - booking section not found');
+                }
+                
+            } catch (error) {
+                log('❌ Error force scrolling: ' + error.message);
+            }
+        }
+
+        // Initialize
+        setTimeout(() => {
+            log('🔍 Bus selection debug tool ready');
+            log('📋 This tool will help identify why Select Bus is not working');
+            log('🎯 Follow the steps above to test the functionality');
+        }, 1000);
+    </script>
+</body>
+</html>

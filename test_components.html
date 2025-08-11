@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Missing Components - Upay Ticket</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.20/dist/full.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">
+                <i class="fas fa-check-circle text-green-600"></i> Component Tests
+            </h1>
+            <p class="text-gray-600">Testing all previously missing components</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Test Schedules API -->
+            <div class="card bg-white shadow-xl">
+                <div class="card-body">
+                    <h2 class="card-title">
+                        <i class="fas fa-clock text-blue-600"></i> Bus Schedules Test
+                    </h2>
+                    <div class="divider"></div>
+                    <div id="schedules-test">
+                        <div class="loading loading-spinner loading-md"></div>
+                        Testing schedules API...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Test Seats API -->
+            <div class="card bg-white shadow-xl">
+                <div class="card-body">
+                    <h2 class="card-title">
+                        <i class="fas fa-chair text-green-600"></i> Seats Test
+                    </h2>
+                    <div class="divider"></div>
+                    <div id="seats-test">
+                        <div class="loading loading-spinner loading-md"></div>
+                        Testing seats API...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Test Bookings API -->
+            <div class="card bg-white shadow-xl">
+                <div class="card-body">
+                    <h2 class="card-title">
+                        <i class="fas fa-ticket-alt text-purple-600"></i> Bookings Test
+                    </h2>
+                    <div class="divider"></div>
+                    <div id="bookings-test">
+                        <div class="loading loading-spinner loading-md"></div>
+                        Testing bookings API...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Test Admin Login -->
+            <div class="card bg-white shadow-xl">
+                <div class="card-body">
+                    <h2 class="card-title">
+                        <i class="fas fa-user-shield text-red-600"></i> Admin Login Test
+                    </h2>
+                    <div class="divider"></div>
+                    <div id="admin-test">
+                        <div class="loading loading-spinner loading-md"></div>
+                        Testing admin authentication...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card bg-white shadow-xl mt-6">
+            <div class="card-body">
+                <h2 class="card-title">
+                    <i class="fas fa-rocket text-orange-600"></i> Quick Access
+                </h2>
+                <div class="divider"></div>
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <a href="index.html" class="btn btn-primary">
+                        <i class="fas fa-home"></i> Main Site
+                    </a>
+                    <a href="admin/login.html" class="btn btn-secondary">
+                        <i class="fas fa-sign-in-alt"></i> Admin Login
+                    </a>
+                    <a href="system_status.php" class="btn btn-accent">
+                        <i class="fas fa-chart-line"></i> System Status
+                    </a>
+                    <a href="database_fix.php" class="btn btn-warning">
+                        <i class="fas fa-wrench"></i> Database Fix
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Test Schedules API
+        async function testSchedules() {
+            const container = document.getElementById('schedules-test');
+            try {
+                const response = await fetch('api/schedules.php?route_id=1&date=2024-12-20');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    container.innerHTML = `
+                        <div class="alert alert-success">
+                            <i class="fas fa-check"></i> Schedules API working
+                        </div>
+                        <div class="text-sm mt-2">
+                            Found ${data.data.length} schedules
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = `
+                        <div class="alert alert-error">
+                            <i class="fas fa-times"></i> ${data.message}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="alert alert-error">
+                        <i class="fas fa-times"></i> Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Test Seats API
+        async function testSeats() {
+            const container = document.getElementById('seats-test');
+            try {
+                const response = await fetch('api/seats.php?schedule_id=1');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    container.innerHTML = `
+                        <div class="alert alert-success">
+                            <i class="fas fa-check"></i> Seats API working
+                        </div>
+                        <div class="text-sm mt-2">
+                            Found ${data.data.length} seats
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = `
+                        <div class="alert alert-error">
+                            <i class="fas fa-times"></i> ${data.message}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="alert alert-error">
+                        <i class="fas fa-times"></i> Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Test Bookings API
+        async function testBookings() {
+            const container = document.getElementById('bookings-test');
+            try {
+                const response = await fetch('api/bookings.php');
+                const data = await response.json();
+                
+                if (data.status === 'success' || response.ok) {
+                    container.innerHTML = `
+                        <div class="alert alert-success">
+                            <i class="fas fa-check"></i> Bookings API accessible
+                        </div>
+                        <div class="text-sm mt-2">
+                            API responding correctly
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = `
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation"></i> API accessible but returned: ${data.message || 'Unknown response'}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="alert alert-error">
+                        <i class="fas fa-times"></i> Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Test Admin Login
+        async function testAdminLogin() {
+            const container = document.getElementById('admin-test');
+            try {
+                const response = await fetch('api/auth.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'admin_login',
+                        email: 'admin@upayticket.com',
+                        password: 'admin123'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    container.innerHTML = `
+                        <div class="alert alert-success">
+                            <i class="fas fa-check"></i> Admin login working
+                        </div>
+                        <div class="text-sm mt-2">
+                            Authenticated as: ${data.data.name || data.data.username}
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = `
+                        <div class="alert alert-error">
+                            <i class="fas fa-times"></i> ${data.message}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="alert alert-error">
+                        <i class="fas fa-times"></i> Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Run all tests
+        window.addEventListener('DOMContentLoaded', () => {
+            testSchedules();
+            testSeats();
+            testBookings();
+            testAdminLogin();
+        });
+    </script>
+</body>
+</html>

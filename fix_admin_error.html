@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel Error Fixer</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .success { color: green; }
+        .error { color: red; }
+        .fix-button { background: #1DD100; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 10px 0; }
+        .fix-button:hover { background: #16b300; }
+    </style>
+</head>
+<body>
+    <h2>Admin Panel Error Fixer</h2>
+    <p>This will clear any stuck notifications and ensure the admin panel works correctly.</p>
+    
+    <button class="fix-button" onclick="clearLocalStorage()">Clear Local Storage</button>
+    <button class="fix-button" onclick="testAdminPanel()">Test Admin Panel</button>
+    
+    <div id="output"></div>
+
+    <script>
+        function clearLocalStorage() {
+            localStorage.clear();
+            sessionStorage.clear();
+            document.getElementById('output').innerHTML += '<p class="success">✓ Local storage and session storage cleared</p>';
+        }
+
+        function testAdminPanel() {
+            // Test if admin panel loads
+            const iframe = document.createElement('iframe');
+            iframe.src = 'admin/index.html';
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+            
+            iframe.onload = function() {
+                document.getElementById('output').innerHTML += '<p class="success">✓ Admin panel loads successfully</p>';
+                // Remove iframe
+                document.body.removeChild(iframe);
+            };
+            
+            iframe.onerror = function() {
+                document.getElementById('output').innerHTML += '<p class="error">✗ Admin panel failed to load</p>';
+                document.body.removeChild(iframe);
+            };
+        }
+
+        // Auto-clear on page load
+        window.onload = function() {
+            document.getElementById('output').innerHTML = '<p>Ready to fix admin panel issues...</p>';
+        };
+    </script>
+
+    <h3>Manual Steps:</h3>
+    <ol>
+        <li>Click "Clear Local Storage" above</li>
+        <li>Open admin panel: <a href="admin/index.html" target="_blank">admin/index.html</a></li>
+        <li>Navigate to Schedules section</li>
+        <li>Try adding a schedule</li>
+    </ol>
+
+    <h3>If error persists:</h3>
+    <p>The error might be browser cache related. Try:</p>
+    <ul>
+        <li>Press Ctrl+F5 to hard refresh</li>
+        <li>Open browser in incognito/private mode</li>
+        <li>Clear browser cache completely</li>
+    </ul>
+</body>
+</html>

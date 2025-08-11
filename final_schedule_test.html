@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule Addition Final Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f0f8ff; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .test-button { background: #28a745; color: white; padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; margin: 10px 5px; font-size: 16px; }
+        .test-button:hover { background: #218838; }
+        .success { color: #28a745; font-weight: bold; background: #d4edda; padding: 10px; border-radius: 5px; margin: 10px 0; }
+        .error { color: #dc3545; font-weight: bold; background: #f8d7da; padding: 10px; border-radius: 5px; margin: 10px 0; }
+        .steps { background: #e7f3ff; padding: 15px; border-radius: 5px; margin: 10px 0; }
+        .checklist { background: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 4px solid #28a745; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Schedule Addition - Final Test</h1>
+        <p>All fixes have been applied. Let's verify that schedule addition now works correctly.</p>
+        
+        <div class="steps">
+            <h3>✅ Fixes Applied:</h3>
+            <ul>
+                <li>Made schedulesData globally accessible (window.schedulesData)</li>
+                <li>Enhanced addSchedule function with better error handling</li>
+                <li>Added comprehensive logging and debugging</li>
+                <li>Fixed all function references to use window.schedulesData</li>
+                <li>Added schedule verification after addition</li>
+                <li>Implemented multiple table update attempts</li>
+            </ul>
+        </div>
+        
+        <div class="checklist">
+            <h3>🧪 Testing Instructions:</h3>
+            <ol>
+                <li><strong>Click the button below</strong> to open the admin panel</li>
+                <li><strong>Navigate to "Schedules"</strong> in the sidebar</li>
+                <li><strong>Click "Add Schedule"</strong> button</li>
+                <li><strong>Fill out the form:</strong>
+                    <ul>
+                        <li>Bus: Select "Green Line Express (GL-001)"</li>
+                        <li>Route: Select "Dhaka - Chittagong"</li>
+                        <li>Departure Time: Enter "16:00"</li>
+                        <li>Departure Date: Select tomorrow's date</li>
+                        <li>Fare: Enter "700"</li>
+                        <li>Available Seats: Enter "40"</li>
+                        <li>Status: Leave as "Active"</li>
+                    </ul>
+                </li>
+                <li><strong>Click "Add Schedule"</strong></li>
+                <li><strong>Open browser console (F12)</strong> to see debug messages</li>
+                <li><strong>Check if the new schedule appears</strong> in the table</li>
+            </ol>
+        </div>
+        
+        <button class="test-button" onclick="openAdminPanel()">🚀 Open Admin Panel for Testing</button>
+        <button class="test-button" onclick="openDebugConsole()">🔍 View Debug Instructions</button>
+        
+        <div id="testResult"></div>
+        
+        <div class="steps">
+            <h3>📋 Expected Results:</h3>
+            <ul>
+                <li>✅ Modal opens without errors</li>
+                <li>✅ Form submits successfully</li>
+                <li>✅ "Schedule added successfully!" notification appears</li>
+                <li>✅ Modal closes automatically</li>
+                <li>✅ New schedule appears as ID 6 in the table</li>
+                <li>✅ Console shows debug messages confirming the process</li>
+            </ul>
+        </div>
+        
+        <div class="steps">
+            <h3>🔧 Console Debug Messages to Look For:</h3>
+            <pre style="background: #1e1e1e; color: #ffffff; padding: 10px; border-radius: 5px; font-size: 12px;">
+🚀 addSchedule function called
+✅ Validation passed
+Starting addSchedule function...
+Form values: {busId: "1", routeId: "2", ...}
+Creating new schedule...
+Current schedulesData: [5 schedules]
+New schedule: {id: 6, bus_name: "Green Line Express (GL-001)", ...}
+Schedule added to array, new length: 6
+updateSchedulesTable called with: [6 schedules]
+Table HTML updated, new content length: [number]
+✅ New schedule found in row 6
+            </pre>
+        </div>
+    </div>
+
+    <script>
+        function openAdminPanel() {
+            const result = document.getElementById('testResult');
+            result.innerHTML = '<div class="success">🚀 Opening admin panel for testing...</div>';
+            
+            const adminWindow = window.open('admin/index.html', '_blank');
+            
+            if (adminWindow) {
+                result.innerHTML += '<div class="success">✅ Admin panel opened successfully! Follow the testing steps above.</div>';
+            } else {
+                result.innerHTML += '<div class="error">❌ Could not open admin panel. Please check your popup blocker.</div>';
+            }
+        }
+        
+        function openDebugConsole() {
+            alert(`Debug Instructions:
+
+1. Open admin panel
+2. Press F12 to open developer tools
+3. Click on "Console" tab
+4. Try adding a schedule
+5. Watch for debug messages
+
+Key messages to look for:
+- "🚀 addSchedule function called"
+- "✅ Validation passed"
+- "Schedule added to array, new length: 6"
+- "✅ New schedule found in row 6"
+
+If you see errors, copy them and we can troubleshoot!`);
+        }
+    </script>
+</body>
+</html>

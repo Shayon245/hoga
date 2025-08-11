@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule Addition Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .debug-section { background: #f8f9fa; padding: 15px; margin: 10px 0; border-radius: 5px; border-left: 4px solid #007bff; }
+        .success { color: #28a745; font-weight: bold; }
+        .error { color: #dc3545; font-weight: bold; }
+        button { background: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
+        button:hover { background: #218838; }
+        textarea { width: 100%; height: 200px; font-family: monospace; }
+        .console-output { background: #1e1e1e; color: #ffffff; padding: 15px; border-radius: 5px; font-family: monospace; height: 300px; overflow-y: auto; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h2>🔍 Schedule Addition Debug Tool</h2>
+    <p>This tool will help diagnose why schedules aren't being added to the table.</p>
+    
+    <div class="debug-section">
+        <h3>Step 1: Test Admin Panel Connection</h3>
+        <button onclick="testAdminPanelConnection()">Test Connection</button>
+        <div id="connection-result"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h3>Step 2: Inject Debug Code</h3>
+        <button onclick="injectDebugCode()">Inject Debug Code into Admin Panel</button>
+        <div id="debug-result"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h3>Step 3: Monitor Console Output</h3>
+        <button onclick="startConsoleMonitoring()">Start Monitoring</button>
+        <div class="console-output" id="console-output">Console output will appear here...</div>
+    </div>
+    
+    <div class="debug-section">
+        <h3>Manual Debug Script</h3>
+        <p>Copy and paste this into the browser console (F12) while on the admin panel:</p>
+        <textarea readonly id="manual-script">
+// Debug script for schedule addition issue
+console.log("🔍 Starting schedule addition debug...");
+
+// Check if schedulesData exists and log its content
+if (window.schedulesData) {
+    console.log("✅ schedulesData exists:", window.schedulesData);
+    console.log("📊 Current length:", window.schedulesData.length);
+} else {
+    console.log("❌ schedulesData not found!");
+}
+
+// Check if updateSchedulesTable function exists
+if (window.updateSchedulesTable) {
+    console.log("✅ updateSchedulesTable function exists");
+} else {
+    console.log("❌ updateSchedulesTable function not found!");
+}
+
+// Check if addSchedule function exists
+if (window.addSchedule) {
+    console.log("✅ addSchedule function exists");
+} else {
+    console.log("❌ addSchedule function not found!");
+}
+
+// Check if the table element exists
+const table = document.getElementById('schedulesTable');
+if (table) {
+    console.log("✅ schedulesTable element found");
+    console.log("📋 Current table rows:", table.children.length);
+} else {
+    console.log("❌ schedulesTable element not found!");
+}
+
+// Test adding a schedule manually
+if (window.schedulesData && window.updateSchedulesTable) {
+    console.log("🧪 Testing manual schedule addition...");
+    
+    const originalLength = window.schedulesData.length;
+    
+    const testSchedule = {
+        id: 999,
+        bus_name: 'DEBUG BUS',
+        route: 'DEBUG ROUTE',
+        departure_time: '12:00',
+        departure_date: '2025-08-12',
+        fare: 100,
+        available_seats: 50,
+        status: 'active'
+    };
+    
+    window.schedulesData.push(testSchedule);
+    console.log("➕ Added test schedule, new length:", window.schedulesData.length);
+    
+    window.updateSchedulesTable(window.schedulesData);
+    console.log("🔄 Table updated");
+    
+    // Check if it appeared in the table
+    const tableAfter = document.getElementById('schedulesTable');
+    if (tableAfter) {
+        console.log("📋 Table rows after update:", tableAfter.children.length);
+        
+        // Look for our test schedule
+        const debugRow = Array.from(tableAfter.children).find(row => 
+            row.textContent.includes('DEBUG BUS')
+        );
+        
+        if (debugRow) {
+            console.log("✅ DEBUG schedule found in table!");
+        } else {
+            console.log("❌ DEBUG schedule NOT found in table!");
+        }
+    }
+}
+
+console.log("🔍 Debug complete - check the output above!");
+        </textarea>
+        <button onclick="copyDebugScript()">Copy Debug Script</button>
+    </div>
+    
+    <div class="debug-section">
+        <h3>Quick Fix Options</h3>
+        <button onclick="openAdminPanelForTesting()">Open Admin Panel for Testing</button>
+        <button onclick="createSimpleTest()">Create Simple Addition Test</button>
+    </div>
+
+    <script>
+        function testAdminPanelConnection() {
+            const result = document.getElementById('connection-result');
+            result.innerHTML = '<p>Testing connection...</p>';
+            
+            const iframe = document.createElement('iframe');
+            iframe.src = 'admin/index.html';
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+            
+            iframe.onload = function() {
+                try {
+                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                    const schedulesTable = iframeDoc.getElementById('schedulesTable');
+                    
+                    if (schedulesTable) {
+                        result.innerHTML = '<p class="success">✅ Connection successful! Table element found.</p>';
+                    } else {
+                        result.innerHTML = '<p class="error">⚠️ Connection successful but table element not found.</p>';
+                    }
+                } catch (e) {
+                    result.innerHTML = `<p class="error">❌ Connection failed: ${e.message}</p>`;
+                }
+                
+                document.body.removeChild(iframe);
+            };
+            
+            iframe.onerror = function() {
+                result.innerHTML = '<p class="error">❌ Could not connect to admin panel.</p>';
+                document.body.removeChild(iframe);
+            };
+        }
+        
+        function injectDebugCode() {
+            const result = document.getElementById('debug-result');
+            result.innerHTML = '<p>Injecting debug code...</p>';
+            
+            // This would open the admin panel and inject debug code
+            const adminWindow = window.open('admin/index.html', 'admin_debug');
+            
+            if (adminWindow) {
+                result.innerHTML = '<p class="success">✅ Admin panel opened. Check browser console for debug output.</p>';
+                
+                // Try to inject debug code after a delay
+                setTimeout(() => {
+                    try {
+                        adminWindow.console.log('🔍 Debug injection from parent window');
+                        result.innerHTML += '<p class="success">✅ Debug code injection attempted.</p>';
+                    } catch (e) {
+                        result.innerHTML += '<p class="error">⚠️ Could not inject debug code due to security restrictions.</p>';
+                    }
+                }, 2000);
+            } else {
+                result.innerHTML = '<p class="error">❌ Could not open admin panel. Check popup blocker.</p>';
+            }
+        }
+        
+        function startConsoleMonitoring() {
+            const output = document.getElementById('console-output');
+            output.innerHTML = 'Console monitoring started...\n';
+            
+            // This is a simplified version - real console monitoring would require browser extension
+            output.innerHTML += 'ℹ️ To see real console output:\n';
+            output.innerHTML += '1. Open admin panel\n';
+            output.innerHTML += '2. Press F12 to open developer tools\n';
+            output.innerHTML += '3. Go to Console tab\n';
+            output.innerHTML += '4. Try adding a schedule\n';
+            output.innerHTML += '5. Watch for debug messages\n\n';
+            output.innerHTML += 'Expected messages when adding schedule:\n';
+            output.innerHTML += '- "Starting addSchedule function..."\n';
+            output.innerHTML += '- "Form values: {...}"\n';
+            output.innerHTML += '- "Creating new schedule..."\n';
+            output.innerHTML += '- "New schedule: {...}"\n';
+            output.innerHTML += '- "Schedule added to array, new length: X"\n';
+            output.innerHTML += '- "updateSchedulesTable called with: [...]"\n';
+            output.innerHTML += '- "Table HTML updated, new content length: X"\n';
+        }
+        
+        function copyDebugScript() {
+            const script = document.getElementById('manual-script');
+            script.select();
+            document.execCommand('copy');
+            alert('Debug script copied to clipboard! Paste it in the browser console (F12) while on the admin panel.');
+        }
+        
+        function openAdminPanelForTesting() {
+            window.open('admin/index.html', '_blank');
+        }
+        
+        function createSimpleTest() {
+            // This would create a simple test page
+            alert('Simple test: Open admin panel, go to Schedules, click Add Schedule, fill form, and check browser console (F12) for debug messages.');
+        }
+    </script>
+</body>
+</html>

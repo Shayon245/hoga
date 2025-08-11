@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Seat Selection</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .seat { padding: 10px; margin: 5px; border: 1px solid #ccc; cursor: pointer; }
+        .selected { background-color: green; color: white; }
+        .debug { background: #f0f0f0; padding: 10px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Debug Seat Selection Issue</h1>
+    
+    <div class="debug">
+        <h3>Current State:</h3>
+        <p>Selected Seats: <span id="selectedSeatsCount">0</span></p>
+        <p>Selected Seats Array: <span id="selectedSeatsArray">[]</span></p>
+        <p>Current Schedule: <span id="currentScheduleStatus">null</span></p>
+        <p>Validation Status: <span id="validationStatus">❌ Invalid</span></p>
+    </div>
+    
+    <div>
+        <h3>Test Seats:</h3>
+        <button class="seat" onclick="testSelectSeat('A2')">A2</button>
+        <button class="seat" onclick="testSelectSeat('B3')">B3</button>
+        <button class="seat" onclick="testSelectSeat('C1')">C1</button>
+    </div>
+    
+    <div>
+        <h3>Test Actions:</h3>
+        <button onclick="testSubmitBooking()">Test Submit Booking</button>
+        <button onclick="setTestSchedule()">Set Test Schedule</button>
+        <button onclick="clearSelection()">Clear Selection</button>
+    </div>
+    
+    <div class="debug">
+        <h3>Console Logs:</h3>
+        <div id="logs"></div>
+    </div>
+
+    <script>
+        // Simulate the global variables from main script
+        let selectedSeats = [];
+        let currentSchedule = null;
+        
+        function log(message) {
+            console.log(message);
+            const logsDiv = document.getElementById('logs');
+            logsDiv.innerHTML += `<div>${new Date().toLocaleTimeString()}: ${message}</div>`;
+            updateDebugInfo();
+        }
+        
+        function updateDebugInfo() {
+            document.getElementById('selectedSeatsCount').textContent = selectedSeats.length;
+            document.getElementById('selectedSeatsArray').textContent = JSON.stringify(selectedSeats);
+            document.getElementById('currentScheduleStatus').textContent = currentSchedule ? 'Set' : 'null';
+            
+            const isValid = currentSchedule && selectedSeats.length > 0;
+            document.getElementById('validationStatus').textContent = isValid ? '✅ Valid' : '❌ Invalid';
+        }
+        
+        function testSelectSeat(seatNumber) {
+            log(`Selecting seat: ${seatNumber}`);
+            
+            // Check if already selected
+            const index = selectedSeats.indexOf(seatNumber);
+            if (index > -1) {
+                // Deselect
+                selectedSeats.splice(index, 1);
+                document.querySelector(`button[onclick="testSelectSeat('${seatNumber}')"]`).classList.remove('selected');
+                log(`Deselected seat: ${seatNumber}`);
+            } else {
+                // Select
+                selectedSeats.push(seatNumber);
+                document.querySelector(`button[onclick="testSelectSeat('${seatNumber}')"]`).classList.add('selected');
+                log(`Selected seat: ${seatNumber}`);
+            }
+            
+            log(`Selected seats array: ${JSON.stringify(selectedSeats)}`);
+            updateDebugInfo();
+        }
+        
+        function setTestSchedule() {
+            currentSchedule = {
+                id: 1,
+                route: 'Test Route',
+                fare: 100,
+                departure_time: '10:00',
+                arrival_time: '12:00'
+            };
+            log('Test schedule set');
+            updateDebugInfo();
+        }
+        
+        function clearSelection() {
+            selectedSeats = [];
+            document.querySelectorAll('.seat').forEach(seat => seat.classList.remove('selected'));
+            log('Selection cleared');
+            updateDebugInfo();
+        }
+        
+        function testSubmitBooking() {
+            log('Testing booking submission...');
+            log(`Current schedule: ${currentSchedule ? 'Set' : 'null'}`);
+            log(`Selected seats count: ${selectedSeats.length}`);
+            log(`Selected seats: ${JSON.stringify(selectedSeats)}`);
+            
+            if (!currentSchedule || selectedSeats.length === 0) {
+                alert('Please select a bus and seats first');
+                log('❌ Validation failed: Please select a bus and seats first');
+                return;
+            }
+            
+            log('✅ Validation passed - booking would proceed');
+            alert('Validation passed! Booking would proceed.');
+        }
+        
+        // Initialize
+        updateDebugInfo();
+        log('Debug page initialized');
+    </script>
+</body>
+</html>

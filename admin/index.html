@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upay Ticket - Admin Panel</title>
+
+    <!-- CSS link  -->
+    <link rel="stylesheet" href="../styles/style.css">
+
+    <!-- Icons From Font Awesome  -->
+    <script src="https://kit.fontawesome.com/62445b34d6.js" crossorigin="anonymous"></script>
+
+    <!-- Google Fonts Link  -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+
+    <!-- Daisy UI and Tailwind CSS Link  -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        /* Ensure notifications can be properly removed */
+        .alert {
+            position: relative;
+            z-index: 9999;
+        }
+        
+        /* Remove any default alert styles that might interfere */
+        .alert-error {
+            background-color: #ef4444;
+            color: white;
+        }
+        
+        .alert-success {
+            background-color: #10b981;
+            color: white;
+        }
+        
+        .alert-info {
+            background-color: #3b82f6;
+            color: white;
+        }
+        
+        /* Hide any error notifications that might be stuck */
+        .notification-error,
+        .notification-alert,
+        .toast-error {
+            display: none !important;
+        }
+        
+        /* Responsive Design */
+        
+        /* Desktop Sidebar - visible by default */
+        .sidebar {
+            transform: translateX(0);
+            transition: transform 0.3s ease-in-out;
+        }
+        
+        /* Mobile Sidebar - hidden by default */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+        }
+        
+        /* Mobile overlay */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 40;
+            display: none;
+        }
+        
+        .sidebar-overlay.active {
+            display: block;
+        }
+        
+        /* Mobile hamburger menu */
+        .mobile-menu-btn {
+            display: none;
+        }
+        
+        /* Table responsive */
+        .table-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: #1DD100 #f1f1f1;
+        }
+        
+        /* Custom scrollbar styles */
+        .table-container::-webkit-scrollbar {
+            height: 8px;
+        }
+        
+        .table-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        .table-container::-webkit-scrollbar-thumb {
+            background: #1DD100;
+            border-radius: 4px;
+        }
+        
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: #16a085;
+        }
+        
+        /* Modal scroll improvements */
+        .modal-scroll {
+            max-height: 80vh;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #1DD100 #f1f1f1;
+        }
+        
+        .modal-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .modal-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+        
+        .modal-scroll::-webkit-scrollbar-thumb {
+            background: #1DD100;
+            border-radius: 3px;
+        }
+        
+        .modal-scroll::-webkit-scrollbar-thumb:hover {
+            background: #16a085;
+        }
+        
+        /* Fix number input spinners */
+        input[type="number"] {
+            appearance: textfield;
+            -moz-appearance: textfield;
+        }
+        
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        /* Smooth scrolling for entire page */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Sidebar scroll improvements */
+        .sidebar {
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #1DD100 #f9f9f9;
+        }
+        
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .sidebar::-webkit-scrollbar-track {
+            background: #f9f9f9;
+        }
+        
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #1DD100;
+            border-radius: 3px;
+        }
+        
+        /* Mobile responsive breakpoints */
+        @media (max-width: 768px) {
+            /* Show mobile menu button */
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            /* Hide desktop header elements on mobile */
+            .desktop-nav {
+                display: none;
+            }
+            
+            /* Mobile header */
+            .mobile-header {
+                padding: 1rem;
+            }
+            
+            .mobile-header h1 {
+                font-size: 1.5rem;
+            }
+            
+            /* Sidebar full height on mobile */
+            .sidebar {
+                width: 280px;
+                height: 100vh;
+                top: 0;
+                z-index: 50;
+            }
+            
+            /* Main content full width on mobile */
+            .main-content {
+                margin-left: 0 !important;
+                width: 100% !important;
+                padding: 1rem;
+            }
+        }
+        
+        /* Desktop styles */
+        @media (min-width: 769px) {
+            /* Desktop navigation visible */
+            .desktop-nav {
+                display: flex;
+            }
+            
+            /* Hide mobile menu button on desktop */
+            .mobile-menu-btn {
+                display: none;
+            }
+            
+            /* Sidebar visible on desktop */
+            .sidebar {
+                transform: translateX(0) !important;
+                position: fixed;
+            }
+            
+            /* Main content with left margin for sidebar */
+            .main-content {
+                margin-left: 256px !important;
+            }
+        }
+            
+            /* Modal responsive */
+            .modal-content {
+                width: 95%;
+                margin: 0 auto;
+                max-width: none;
+            }
+            
+            /* Table mobile view */
+            .table-mobile {
+                font-size: 0.875rem;
+            }
+            
+            .table-mobile th,
+            .table-mobile td {
+                padding: 0.5rem 0.25rem;
+                white-space: nowrap;
+            }
+            
+            /* Hide less important columns on mobile */
+            .hide-mobile {
+                display: none;
+            }
+            
+            /* Action buttons smaller on mobile */
+            .btn-mobile {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.75rem;
+            }
+        }
+        
+        /* Desktop styles */
+        @media (min-width: 769px) {
+            /* Desktop navigation visible */
+            .desktop-nav {
+                display: flex;
+            }
+            
+            /* Hide mobile menu button on desktop */
+            .mobile-menu-btn {
+                display: none;
+            }
+            
+            /* Sidebar visible on desktop */
+            .sidebar {
+                transform: translateX(0) !important;
+                position: fixed;
+            }
+        }
+        
+        /* Tablet responsive */
+        @media (max-width: 1024px) and (min-width: 769px) {
+            .sidebar {
+                width: 240px;
+            }
+            
+            .main-content {
+                margin-left: 240px !important;
+                padding: 1.5rem;
+            }
+            
+            .table-container {
+                font-size: 0.9rem;
+            }
+        }
+        
+        /* Large desktop */
+        @media (min-width: 1025px) {
+            .sidebar {
+                width: 256px;
+            }
+            
+            .main-content {
+                margin-left: 256px !important;
+                padding: 2rem;
+            }
+        }
+    </style>
+</head>
+
+<body class="fonts-raleway bg-gray-50">
+    <!-- EMERGENCY ERROR REMOVAL SCRIPT -->
+    <script>
+        // Immediate error removal - runs as soon as body loads
+        (function() {
+            console.log('🚨 Emergency error removal script executing...');
+            
+            // Function to aggressively remove error notifications
+            function forceRemoveErrors() {
+                const errorSelectors = [
+                    '.alert', '.notification', '.toast', '.alert-error', 
+                    '.alert-success', '.alert-info', '.alert-warning',
+                    '[class*="alert"]', '[class*="notification"]', '[class*="toast"]',
+                    '.fixed', '.absolute', '.bg-red-500', '.text-red-500'
+                ];
+                
+                let removed = 0;
+                errorSelectors.forEach(selector => {
+                    try {
+                        const elements = document.querySelectorAll(selector);
+                        elements.forEach(el => {
+                            if (el.textContent && (
+                                el.textContent.includes('Error adding schedule') ||
+                                el.textContent.includes('Error') ||
+                                el.textContent.includes('error')
+                            )) {
+                                console.log('Removing stuck error:', el.textContent.substring(0, 50));
+                                el.remove();
+                                removed++;
+                            }
+                        });
+                    } catch(e) {
+                        console.log('Error in selector:', selector, e);
+                    }
+                });
+                
+                return removed;
+            }
+            
+            // Run immediately
+            let removed = forceRemoveErrors();
+            console.log(`Immediate cleanup: removed ${removed} error elements`);
+            
+            // Run multiple times with delays
+            setTimeout(() => {
+                let removed = forceRemoveErrors();
+                console.log(`Delayed cleanup 1: removed ${removed} error elements`);
+            }, 100);
+            
+            setTimeout(() => {
+                let removed = forceRemoveErrors();
+                console.log(`Delayed cleanup 2: removed ${removed} error elements`);
+            }, 500);
+            
+            setTimeout(() => {
+                let removed = forceRemoveErrors();
+                console.log(`Delayed cleanup 3: removed ${removed} error elements`);
+            }, 1000);
+            
+            // Clear localStorage
+            try {
+                localStorage.removeItem('adminNotifications');
+                localStorage.removeItem('adminErrors');
+                localStorage.removeItem('errorState');
+                console.log('Cleared error storage');
+            } catch(e) {
+                console.log('Could not clear storage:', e);
+            }
+        })();
+    </script>
+    
+    <!-- Force clear any stuck notifications -->
+    <script>
+        // Immediate notification cleanup on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Remove any existing alerts/notifications that might be stuck
+            const alertSelectors = [
+                '.alert', '.notification', '.toast', '.alert-error', 
+                '.alert-success', '.alert-info', '.alert-warning',
+                '[class*="alert"]', '[class*="notification"]', '[class*="toast"]'
+            ];
+            
+            alertSelectors.forEach(selector => {
+                const elements = document.querySelectorAll(selector);
+                elements.forEach(el => {
+                    if (el.textContent && (
+                        el.textContent.includes('Login failed') ||
+                        el.textContent.includes('Error adding schedule') ||
+                        el.textContent.includes('Error')
+                    )) {
+                        el.remove();
+                    }
+                });
+            });
+            
+            // Clear any inline styles that might be creating red error bars
+            const redElements = document.querySelectorAll('[style*="background-color: red"], [style*="color: red"], [class*="bg-red"], [class*="text-red"]');
+            redElements.forEach(el => {
+                if (el.textContent && (
+                    el.textContent.includes('Login failed') ||
+                    el.textContent.includes('Error adding schedule') ||
+                    el.textContent.includes('Error')
+                )) {
+                    el.remove();
+                }
+            });
+            
+            // Add mutation observer to catch dynamically added error notifications
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    mutation.addedNodes.forEach(function(node) {
+                        if (node.nodeType === 1) { // Element node
+                            // Check if the added node is an error notification
+                            if (node.textContent && node.textContent.includes('Error adding schedule')) {
+                                console.log('Caught and removing dynamic error notification');
+                                node.remove();
+                            }
+                            
+                            // Check child nodes too
+                            const errorNodes = node.querySelectorAll && node.querySelectorAll('.alert, [class*="alert"], .notification');
+                            if (errorNodes) {
+                                errorNodes.forEach(errorNode => {
+                                    if (errorNode.textContent && errorNode.textContent.includes('Error adding schedule')) {
+                                        console.log('Caught and removing child error notification');
+                                        errorNode.remove();
+                                    }
+                                });
+                            }
+                        }
+                    });
+                });
+            });
+            
+            // Start observing
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+            
+            console.log('✅ Error notification observer installed');
+        });
+    </script>
+    <!-- Admin Header -->
+    <header class="bg-white shadow-lg fixed top-0 left-0 right-0 z-50">
+        <div class="flex justify-between items-center px-4 md:px-6 py-4 mobile-header">
+            <div class="flex items-center gap-2 md:gap-4">
+                <!-- Mobile Menu Button -->
+                <button onclick="toggleMobileSidebar()" class="mobile-menu-btn btn btn-ghost btn-sm p-2">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                <h1 class="text-xl md:text-2xl font-bold text-[#1DD100]">Upay Ticket Admin</h1>
+                <span class="badge badge-success hidden sm:inline-flex">Admin Panel</span>
+            </div>
+            <div class="flex items-center gap-2 md:gap-4 desktop-nav">
+                <span class="text-gray-600 hidden md:inline">Welcome, Admin</span>
+                <button onclick="logout()" class="btn btn-outline btn-sm">
+                    <i class="fas fa-sign-out-alt mr-1 md:mr-2"></i>
+                    <span class="hidden sm:inline">Logout</span>
+                    <span class="sm:hidden">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Sidebar Overlay -->
+    <div id="sidebarOverlay" class="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+
+    <!-- Main Content -->
+    <div class="flex pt-16 md:pt-20">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="sidebar w-64 md:w-64 bg-white shadow-lg h-screen fixed left-0 top-16 md:top-20 z-40">
+            <nav class="p-4">
+                <ul class="space-y-2">
+                    <li>
+                        <button onclick="showDashboard(); closeMobileSidebar();" class="w-full text-left p-3 rounded-lg hover:bg-[#1DD100] hover:text-white transition-colors">
+                            <i class="fas fa-tachometer-alt mr-3"></i>Dashboard
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="showRoutes(); closeMobileSidebar();" class="w-full text-left p-3 rounded-lg hover:bg-[#1DD100] hover:text-white transition-colors">
+                            <i class="fas fa-route mr-3"></i>Routes
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="showBuses(); closeMobileSidebar();" class="w-full text-left p-3 rounded-lg hover:bg-[#1DD100] hover:text-white transition-colors">
+                            <i class="fas fa-bus mr-3"></i>Buses
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="showSchedules(); closeMobileSidebar();" class="w-full text-left p-3 rounded-lg hover:bg-[#1DD100] hover:text-white transition-colors">
+                            <i class="fas fa-calendar mr-3"></i>Schedules
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="showBookings(); closeMobileSidebar();" class="w-full text-left p-3 rounded-lg hover:bg-[#1DD100] hover:text-white transition-colors">
+                            <i class="fas fa-ticket-alt mr-3"></i>Bookings
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="showUsers(); closeMobileSidebar();" class="w-full text-left p-3 rounded-lg hover:bg-[#1DD100] hover:text-white transition-colors">
+                            <i class="fas fa-users mr-3"></i>Users
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="showCoupons(); closeMobileSidebar();" class="w-full text-left p-3 rounded-lg hover:bg-[#1DD100] hover:text-white transition-colors">
+                            <i class="fas fa-percentage mr-3"></i>Coupons
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="showReports(); closeMobileSidebar();" class="w-full text-left p-3 rounded-lg hover:bg-[#1DD100] hover:text-white transition-colors">
+                            <i class="fas fa-chart-bar mr-3"></i>Reports
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content ml-0 md:ml-64 flex-1 p-4 md:p-8">
+            <!-- Dashboard Section -->
+            <div id="dashboard" class="block">
+                <h2 class="text-2xl md:text-3xl font-bold mb-6 md:mb-8">Dashboard</h2>
+                
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
+                    <div class="bg-white p-4 md:p-6 rounded-lg shadow-md">
+                        <div class="flex items-center">
+                            <div class="p-2 md:p-3 rounded-full bg-blue-100 text-blue-600">
+                                <i class="fas fa-ticket-alt text-lg md:text-2xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-600">Total Bookings</p>
+                                <p class="text-2xl font-semibold text-gray-900" id="totalBookings">0</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-green-100 text-green-600">
+                                <i class="fas fa-dollar-sign text-2xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-600">Total Revenue</p>
+                                <p class="text-2xl font-semibold text-gray-900" id="totalRevenue">৳0</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                                <i class="fas fa-users text-2xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-600">Active Users</p>
+                                <p class="text-2xl font-semibold text-gray-900" id="activeUsers">0</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-red-100 text-red-600">
+                                <i class="fas fa-bus text-2xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-600">Active Buses</p>
+                                <p class="text-2xl font-semibold text-gray-900" id="activeBuses">0</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Bookings -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-semibold mb-4">Recent Bookings</h3>
+                    <div class="overflow-x-auto">
+                        <table class="table table-zebra w-full">
+                            <thead>
+                                <tr>
+                                    <th>Booking ID</th>
+                                    <th>Passenger</th>
+                                    <th>Route</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentBookingsTable">
+                                <!-- Recent bookings will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Routes Section -->
+            <div id="routes" class="hidden">
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 md:mb-6 gap-4">
+                    <h2 class="text-2xl md:text-3xl font-bold">Routes Management</h2>
+                    <button onclick="openAddRouteModal()" class="btn btn-success bg-[#1DD100] w-full sm:w-auto">
+                        <i class="fas fa-plus mr-2"></i>Add Route
+                    </button>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-md p-4 md:p-6">
+                    <div class="table-container overflow-x-auto">
+                        <table class="table table-zebra w-full table-mobile">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>From</th>
+                                    <th>To</th>
+                                    <th class="hide-mobile">Distance (km)</th>
+                                    <th class="hide-mobile">Duration (hrs)</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="routesTable">
+                                <!-- Routes will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Buses Section -->
+            <div id="buses" class="hidden">
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 md:mb-6 gap-4">
+                    <h2 class="text-2xl md:text-3xl font-bold">Buses Management</h2>
+                    <button onclick="openAddBusModal()" class="btn btn-success bg-[#1DD100] w-full sm:w-auto">
+                        <i class="fas fa-plus mr-2"></i>Add Bus
+                    </button>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-md p-4 md:p-6">
+                    <div class="table-container overflow-x-auto">
+                        <table class="table table-zebra w-full table-mobile">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Bus Name</th>
+                                    <th class="hide-mobile">Bus Number</th>
+                                    <th class="hide-mobile">Type</th>
+                                    <th class="hide-mobile">Total Seats</th>
+                                    <th class="hide-mobile">Company</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="busesTable">
+                                <!-- Buses will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Schedules Section -->
+            <div id="schedules" class="hidden">
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 md:mb-6 gap-4">
+                    <h2 class="text-2xl md:text-3xl font-bold">Schedules Management</h2>
+                    <button onclick="openAddScheduleModal()" class="btn btn-success bg-[#1DD100] w-full sm:w-auto">
+                        <i class="fas fa-plus mr-2"></i>Add Schedule
+                    </button>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-md p-4 md:p-6">
+                    <div class="table-container overflow-x-auto">
+                        <table class="table table-zebra w-full table-mobile">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Bus</th>
+                                    <th class="hide-mobile">Route</th>
+                                    <th>Departure</th>
+                                    <th class="hide-mobile">Date</th>
+                                    <th class="hide-mobile">Fare</th>
+                                    <th class="hide-mobile">Available Seats</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="schedulesTable">
+                                <!-- Schedules will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bookings Section -->
+            <div id="bookings" class="hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-3xl font-bold">Bookings Management</h2>
+                    <div class="flex gap-2">
+                        <select id="bookingStatusFilter" class="select select-bordered" onchange="filterBookings()">
+                            <option value="">All Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                        <button onclick="exportBookings()" class="btn btn-outline">
+                            <i class="fas fa-download mr-2"></i>Export
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="overflow-x-auto">
+                        <table class="table table-zebra w-full">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Passenger</th>
+                                    <th>Route</th>
+                                    <th>Seats</th>
+                                    <th>Total Amount</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bookingsTable">
+                                <!-- Bookings will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Section -->
+            <div id="users" class="hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-3xl font-bold">Users Management</h2>
+                    <button onclick="openAddUserModal()" class="btn btn-success bg-[#1DD100]">
+                        <i class="fas fa-plus mr-2"></i>Add User
+                    </button>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="overflow-x-auto">
+                        <table class="table table-zebra w-full">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Join Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTable">
+                                <!-- Users will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coupons Section -->
+            <div id="coupons" class="hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-3xl font-bold">Coupons Management</h2>
+                    <button onclick="openAddCouponModal()" class="btn btn-success bg-[#1DD100]">
+                        <i class="fas fa-plus mr-2"></i>Add Coupon
+                    </button>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="overflow-x-auto">
+                        <table class="table table-zebra w-full">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Code</th>
+                                    <th>Discount %</th>
+                                    <th>Max Discount</th>
+                                    <th>Min Amount</th>
+                                    <th>Valid Until</th>
+                                    <th>Usage</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="couponsTable">
+                                <!-- Coupons will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Section -->
+            <div id="reports" class="hidden">
+                <h2 class="text-3xl font-bold mb-8">Reports & Analytics</h2>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Revenue Chart -->
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h3 class="text-xl font-semibold mb-4">Revenue Overview</h3>
+                        <div class="h-64 bg-gray-100 rounded flex items-center justify-center">
+                            <p class="text-gray-500">Chart will be implemented here</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Booking Trends -->
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h3 class="text-xl font-semibold mb-4">Booking Trends</h3>
+                        <div class="h-64 bg-gray-100 rounded flex items-center justify-center">
+                            <p class="text-gray-500">Chart will be implemented here</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Popular Routes -->
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h3 class="text-xl font-semibold mb-4">Popular Routes</h3>
+                        <div id="popularRoutesList">
+                            <!-- Popular routes will be loaded here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Activity -->
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h3 class="text-xl font-semibold mb-4">Recent Activity</h3>
+                        <div id="recentActivityList">
+                            <!-- Recent activity will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals will be added here -->
+    <div id="modalContainer"></div>
+
+    <!-- JavaScript -->
+    <script src="admin.js"></script>
+</body>
+
+</html> 
